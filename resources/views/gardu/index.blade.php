@@ -11,29 +11,34 @@
     </div>
 
     <div class="card">
-        <form method="GET" class="flex flex-wrap items-center justify-between gap-3 p-4">
-            <div class="flex flex-wrap items-center gap-3">
-                <label class="flex items-center gap-2 text-sm text-slate-600">
-                    Show
-                    <select name="per_page" data-autosubmit class="input w-auto py-1.5">
-                        @foreach ([10, 25, 50, 100] as $n)
-                            <option value="{{ $n }}" @selected($perPage === $n)>{{ $n }}</option>
-                        @endforeach
-                    </select>
-                    entries
-                </label>
-                <select name="gerbang_id" data-autosubmit class="input w-auto py-1.5">
-                    <option value="">Semua Gerbang</option>
-                    @foreach ($gerbangList as $g)
-                        <option value="{{ $g->id }}" @selected($gerbangId == $g->id)>{{ $g->nama_gerbang }}</option>
-                    @endforeach
-                </select>
+       <form method="GET" class="space-y-3 p-4">
+            <div class="grid gap-3 sm:grid-cols-3">
+                <x-cascade-select :filter="true" :submit="true" :with-gardu="true"
+                                :ruas-id="$ruasId" :gerbang-id="$gerbangId" :gardu-id="$garduId" />
             </div>
-            <div class="relative w-full sm:w-64">
-                <x-icon name="search" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <input type="search" name="q" value="{{ $q }}" placeholder="Cari gardu..." class="input pl-9">
+
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-4">
+                    <label class="flex items-center gap-2 text-sm text-slate-600">
+                        Show
+                        <select name="per_page" data-autosubmit class="input w-auto py-1.5">
+                            @foreach ([10, 25, 50, 100] as $n)
+                                <option value="{{ $n }}" @selected($perPage === $n)>{{ $n }}</option>
+                            @endforeach
+                        </select>
+                        entries
+                    </label>
+                    @if ($ruasId || $gerbangId || $garduId)
+                        <a href="{{ route('gardu.index') }}" class="text-xs text-blue-600 hover:underline">Reset filter</a>
+                    @endif
+                </div>
+                <div class="relative w-full sm:w-64">
+                    <x-icon name="search" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <input type="search" name="q" value="{{ $q }}" placeholder="Cari gardu..." class="input pl-9">
+                </div>
             </div>
         </form>
+        @include('partials.cascade-data')
 
         <div class="overflow-x-auto">
             <table class="w-full">

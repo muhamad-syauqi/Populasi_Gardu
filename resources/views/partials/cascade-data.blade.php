@@ -1,0 +1,1 @@
+<script type="application/json" id="cascade-data">@json($tree)</script>

@@ -1,4 +1,5 @@
 // Sidebar (mobile)
+import { initCascades } from './cascade';
 const sidebar = document.getElementById('sidebar');
 const backdrop = document.getElementById('sidebar-backdrop');
 
@@ -36,3 +37,4 @@ document.querySelectorAll('[data-toggle-password]').forEach((btn) => {
 document.querySelectorAll('[data-dismiss]').forEach((btn) => {
     btn.addEventListener('click', () => btn.closest('[role="alert"]')?.remove());
 });
+initCascades();

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\CascadeData;
 use App\Models\Gardu;
 use App\Models\Gerbang;
 use App\Models\TipeGardu;
@@ -18,9 +19,11 @@ class LaporanController extends Controller
 
         return view('laporan.index', [
             'gardu' => $this->query($request)->paginate(15)->withQueryString(),
-            'gerbangList' => Gerbang::orderBy('nama_gerbang')->get(['id', 'nama_gerbang']),
+            'tree' => CascadeData::tree(),
             'tipeList' => TipeGardu::orderBy('id')->get(),
-            'filters' => $request->only(['gerbang_id', 'tipe_gardu_id', 'status', 'dari', 'sampai']),
+            'filters' => $request->only([
+                'ruas_id', 'gerbang_id', 'gardu_id', 'tipe_gardu_id', 'status', 'dari', 'sampai',
+            ]),
         ]);
     }
 
@@ -74,7 +77,9 @@ class LaporanController extends Controller
     private function validateFilters(Request $request): void
     {
         $request->validate([
+            'ruas_id' => ['nullable', 'integer'],
             'gerbang_id' => ['nullable', 'integer'],
+            'gardu_id' => ['nullable', 'integer'],
             'tipe_gardu_id' => ['nullable', 'integer'],
             'status' => ['nullable', 'in:'.implode(',', Gardu::STATUS)],
             'dari' => ['nullable', 'date'],
@@ -82,12 +87,14 @@ class LaporanController extends Controller
         ]);
     }
 
-    private function query(Request $request)
+   private function query(Request $request)
     {
         return Gardu::with(['gerbang.ruas', 'tipe', 'perangkat'])
             ->join('gerbang', 'gerbang.id', '=', 'gardu.gerbang_id')
             ->select('gardu.*')
+            ->when($request->filled('ruas_id'), fn ($q) => $q->where('gerbang.ruas_id', $request->input('ruas_id')))
             ->when($request->filled('gerbang_id'), fn ($q) => $q->where('gardu.gerbang_id', $request->input('gerbang_id')))
+            ->when($request->filled('gardu_id'), fn ($q) => $q->where('gardu.id', $request->input('gardu_id')))
             ->when($request->filled('tipe_gardu_id'), fn ($q) => $q->where('gardu.tipe_gardu_id', $request->input('tipe_gardu_id')))
             ->when($request->filled('status'), fn ($q) => $q->where('gardu.status', $request->input('status')))
             ->when($request->filled('dari'), fn ($q) => $q->whereDate('gardu.created_at', '>=', $request->input('dari')))

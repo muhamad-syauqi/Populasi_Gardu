@@ -16,22 +16,11 @@
         @if ($gardu->exists) @method('PUT') @endif
 
         <div class="grid gap-4 md:grid-cols-2">
-            <div>
-                <label for="gerbang_id" class="label">Gerbang Tol <span class="text-red-500">*</span></label>
-                <select id="gerbang_id" name="gerbang_id" required class="input">
-                    <option value="">Pilih Gerbang</option>
-                    @foreach ($gerbangList as $g)
-                        <option value="{{ $g->id }}" @selected(old('gerbang_id', $gardu->gerbang_id) == $g->id)>{{ $g->nama_gerbang }}@if($g->ruas) — {{ $g->ruas->nama_ruas }}@endif</option>
-                    @endforeach
-                </select>
-                @if ($err('gerbang_id')) <p class="mt-1 text-xs text-red-600">{{ $err('gerbang_id') }}</p> @endif
-            </div>
-
-            <div>
-                <label for="nomor_gardu" class="label">Nomor Gardu <span class="text-red-500">*</span></label>
-                <input id="nomor_gardu" name="nomor_gardu" type="text" maxlength="10" required value="{{ old('nomor_gardu', $gardu->nomor_gardu) }}" placeholder="Contoh: 01" class="input">
-                @if ($err('nomor_gardu')) <p class="mt-1 text-xs text-red-600">{{ $err('nomor_gardu') }}</p> @endif
-            </div>
+            <x-cascade-select :required="true" :pick-gardu="true"
+                  :ruas-id="old('ruas_id', $gardu->gerbang?->ruas_id)"
+                  :gerbang-id="old('gerbang_id', $gardu->gerbang_id)"
+                  :current-id="$gardu->id"
+                  :nomor="old('nomor_gardu', $gardu->nomor_gardu)" />
 
             <div>
                 <label for="tipe_gardu_id" class="label">Tipe Gardu</label>
@@ -71,7 +60,7 @@
                 @if ($err('catatan')) <p class="mt-1 text-xs text-red-600">{{ $err('catatan') }}</p> @endif
             </div>
         </div>
-
+        @include('partials.cascade-data')
         <div>
             <h2 class="mb-3 text-sm font-semibold text-slate-800">Perangkat dan Sistem</h2>
 
@@ -79,7 +68,7 @@
                 $groups = [
                     ['Jumlah Reader', ['reader_atas' => 'Atas', 'reader_bawah' => 'Bawah']],
                     ['CCTV', ['cctv_lajur' => 'Lajur', 'cctv_gandar' => 'Gandar']],
-                    ['LPR', ['lpr_custom' => 'Custom']],
+                    ['LPR Custom', ['lpr_custom' => 'Atas', 'custom_bawah' => 'Bawah']],
                     ['Pyramid', ['pyramid_atas' => 'Atas', 'pyramid_bawah' => 'Bawah']],
                     ['HS', ['hs_atas' => 'Atas', 'hs_bawah' => 'Bawah']],
                 ];

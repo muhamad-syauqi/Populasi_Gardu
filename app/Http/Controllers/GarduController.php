@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Gardu;
+use App\Support\CascadeData;
 use App\Models\Gerbang;
 use App\Models\PerangkatGardu;
 use App\Models\TipeGardu;
@@ -17,14 +18,18 @@ class GarduController extends Controller
     public function index(Request $request): View
     {
         $q = trim((string) $request->input('q'));
+        $ruasId = $request->input('ruas_id');
         $gerbangId = $request->input('gerbang_id');
+        $garduId = $request->input('gardu_id');
         $perPage = in_array((int) $request->input('per_page'), [10, 25, 50, 100], true)
             ? (int) $request->input('per_page') : 10;
 
         $gardu = Gardu::with(['gerbang', 'tipe'])
             ->join('gerbang', 'gerbang.id', '=', 'gardu.gerbang_id')
             ->select('gardu.*')
+            ->when($ruasId, fn ($query) => $query->where('gerbang.ruas_id', $ruasId))
             ->when($gerbangId, fn ($query) => $query->where('gardu.gerbang_id', $gerbangId))
+            ->when($garduId, fn ($query) => $query->where('gardu.id', $garduId))
             ->when($q !== '', function ($query) use ($q) {
                 $query->where(function ($w) use ($q) {
                     $w->where('gardu.nomor_gardu', 'like', "%{$q}%")
@@ -40,9 +45,11 @@ class GarduController extends Controller
 
         return view('gardu.index', [
             'gardu' => $gardu,
-            'gerbangList' => Gerbang::orderBy('nama_gerbang')->get(['id', 'nama_gerbang']),
+            'tree' => CascadeData::tree(),
             'q' => $q,
+            'ruasId' => $ruasId,
             'gerbangId' => $gerbangId,
+            'garduId' => $garduId,
             'perPage' => $perPage,
         ]);
     }
@@ -94,12 +101,12 @@ class GarduController extends Controller
         return redirect()->route('gardu.index')->with('success', 'Data gardu berhasil dihapus.');
     }
 
-    private function formData(Gardu $gardu): array
+   private function formData(Gardu $gardu): array
     {
         return [
             'gardu' => $gardu,
             'perangkat' => $gardu->perangkat ?? new PerangkatGardu,
-            'gerbangList' => Gerbang::with('ruas')->orderBy('nama_gerbang')->get(),
+            'tree' => CascadeData::tree(),
             'tipeList' => TipeGardu::orderBy('id')->get(),
         ];
     }
@@ -107,7 +114,16 @@ class GarduController extends Controller
     private function rules(Request $request, ?Gardu $gardu = null): array
     {
         $rules = [
-            'gerbang_id' => ['required', 'exists:gerbang,id'],
+            'ruas_id' => ['nullable', 'exists:ruas_tol,id'],
+            'gerbang_id' => [
+                'required', 'exists:gerbang,id',
+                function ($attribute, $value, $fail) use ($request) {
+                    $ruasId = $request->input('ruas_id');
+                    if ($ruasId && ! Gerbang::where('id', $value)->where('ruas_id', $ruasId)->exists()) {
+                        $fail('Gerbang tidak sesuai dengan ruas tol yang dipilih.');
+                    }
+                },
+            ],
             'nomor_gardu' => [
                 'required', 'string', 'max:10',
                 Rule::unique('gardu', 'nomor_gardu')

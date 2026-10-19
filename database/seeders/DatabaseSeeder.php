@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
@@ -16,8 +15,6 @@ class DatabaseSeeder extends Seeder
             ['name' => 'admin', 'email' => 'admin@intracs.local', 'password' => 'Admin#12345']
         );
 
-        if (DB::table('ruas_tol')->doesntExist()) {
-            $this->call(PopulasiGarduSeeder::class);
-        }
+        $this->call(ImportPopulasiGarduSeeder::class);
     }
 }

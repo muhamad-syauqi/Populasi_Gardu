@@ -6,16 +6,12 @@
     <p class="mb-4 text-sm text-slate-500">Lihat dan unduh data identitas gardu dalam format Excel.</p>
 
     <div class="card">
-        <form method="GET" action="{{ route('laporan.index') }}" class="grid gap-3 border-b border-slate-100 p-4 sm:grid-cols-2 lg:grid-cols-6">
-            <div>
-                <label class="label">Gerbang</label>
-                <select name="gerbang_id" class="input">
-                    <option value="">Semua Gerbang</option>
-                    @foreach ($gerbangList as $g)
-                        <option value="{{ $g->id }}" @selected(($filters['gerbang_id'] ?? '') == $g->id)>{{ $g->nama_gerbang }}</option>
-                    @endforeach
-                </select>
-            </div>
+        <form method="GET" action="{{ route('laporan.index') }}" class="grid gap-3 border-b border-slate-100 p-4 sm:grid-cols-2 lg:grid-cols-4">
+            <x-cascade-select :filter="true" :with-gardu="true"
+                            :ruas-id="$filters['ruas_id'] ?? null"
+                            :gerbang-id="$filters['gerbang_id'] ?? null"
+                            :gardu-id="$filters['gardu_id'] ?? null" />
+
             <div>
                 <label class="label">Tipe Gardu</label>
                 <select name="tipe_gardu_id" class="input">
@@ -45,8 +41,9 @@
             <div class="flex items-end">
                 <button type="submit" class="btn btn-primary w-full">Tampilkan</button>
             </div>
-            @error('sampai') <p class="text-xs text-red-600 sm:col-span-2 lg:col-span-6">{{ $message }}</p> @enderror
+            @error('sampai') <p class="text-xs text-red-600 sm:col-span-2 lg:col-span-4">{{ $message }}</p> @enderror
         </form>
+        @include('partials.cascade-data')
 
         <div class="overflow-x-auto">
             <table class="w-full">
