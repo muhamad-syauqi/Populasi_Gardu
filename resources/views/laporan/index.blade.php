@@ -3,13 +3,22 @@
 
 @section('content')
     <h1 class="text-2xl font-bold text-slate-900">Laporan Identitas Gardu</h1>
-    <p class="mb-4 text-sm text-slate-500">Grafik rincian gardu per gerbang. Pilih ruas atau gerbang untuk melihat detailnya.</p>
+    <p class="mb-4 text-sm text-slate-500">Grafik rincian per gerbang. Pilih ruas, gerbang, dan jenis perangkat yang ingin ditampilkan.</p>
 
     <form method="GET" action="{{ route('laporan.index') }}" class="card mb-6 p-4">
-        <div class="grid gap-3 sm:grid-cols-2 lg:max-w-2xl">
+        <div class="grid gap-3 sm:grid-cols-3 lg:max-w-4xl">
             <x-cascade-select :filter="true" :submit="true" :ruas-id="$ruasId" :gerbang-id="$gerbangId" />
+
+            <div>
+                <label for="perangkat" class="label">Tampilkan</label>
+                <select id="perangkat" name="perangkat" data-autosubmit class="input">
+                    @foreach ($metrikList as $key => $label)
+                        <option value="{{ $key }}" @selected($metrik === $key)>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
         </div>
-        @if ($ruasId || $gerbangId)
+        @if ($ruasId || $gerbangId || $metrik !== 'tipe')
             <a href="{{ route('laporan.index') }}" class="mt-3 inline-block text-xs text-blue-600 hover:underline">Reset pilihan</a>
         @endif
     </form>
@@ -21,9 +30,12 @@
             ['label' => 'Total Gardu', 'value' => $totalGardu, 'sub' => 'Gardu terdaftar', 'icon' => 'grid', 'color' => 'bg-emerald-100 text-emerald-600'],
             ['label' => 'Gardu Aktif', 'value' => $totalAktif, 'sub' => $totalGardu > 0 ? round($totalAktif / $totalGardu * 100).'% dari total' : '-', 'icon' => 'check', 'color' => 'bg-violet-100 text-violet-600'],
         ];
+        if (! in_array($metrik, ['tipe', 'semua'], true)) {
+            $stats[] = ['label' => 'Total '.$labelMetrik, 'value' => $totalMetrik, 'sub' => $judul, 'icon' => 'bolt', 'color' => 'bg-amber-100 text-amber-600'];
+        }
     @endphp
 
-    <div class="grid gap-4 sm:grid-cols-3">
+    <div class="grid gap-4 sm:grid-cols-2 {{ count($stats) > 3 ? 'xl:grid-cols-4' : 'xl:grid-cols-3' }}">
         @foreach ($stats as $s)
             <div class="card flex items-center gap-4 p-5">
                 <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl {{ $s['color'] }}">
@@ -38,7 +50,7 @@
         @endforeach
     </div>
 
-    @if ($totalGardu > 0)
+    @if ($totalMetrik > 0)
         <div class="mt-6 grid gap-4 xl:grid-cols-5">
             <div class="card p-5 xl:col-span-3">
                 <h2 class="font-semibold text-slate-800">{{ $bar['title'] }}</h2>
@@ -47,7 +59,7 @@
             </div>
 
             <div class="card p-5 xl:col-span-2">
-                <h2 class="font-semibold text-slate-800">Komposisi Tipe Gardu</h2>
+                <h2 class="font-semibold text-slate-800">Komposisi {{ $labelMetrik }}</h2>
                 <p class="mb-4 text-xs text-slate-500">{{ $judul }}</p>
                 <div class="flex flex-col items-center gap-6 sm:flex-row">
                     <div class="h-48 w-48 shrink-0"><canvas id="chartPie"></canvas></div>
@@ -55,7 +67,7 @@
                         @foreach ($pie as $t)
                             <li class="flex items-center justify-between gap-3">
                                 <span class="flex items-center gap-2">
-                                    <span class="h-2.5 w-2.5 rounded-full" style="background: {{ $t['warna'] }}"></span>
+                                    <span class="h-2.5 w-2.5 shrink-0 rounded-full" style="background: {{ $t['warna'] }}"></span>
                                     {{ $t['nama'] }}
                                 </span>
                                 <span class="text-slate-500">{{ $t['jumlah'] }} <span class="text-xs text-slate-400">({{ $t['persen'] }}%)</span></span>
@@ -67,7 +79,7 @@
         </div>
 
         <div class="card mt-6">
-            <h2 class="border-b border-slate-100 p-4 font-semibold text-slate-800">Rekap Gardu per Gerbang</h2>
+            <h2 class="border-b border-slate-100 p-4 font-semibold text-slate-800">Rekap {{ $labelMetrik }} per Gerbang</h2>
             <div class="overflow-x-auto">
                 <table class="w-full">
                     <thead>
@@ -85,7 +97,7 @@
                             <tr class="hover:bg-slate-50">
                                 <td class="td">{{ $loop->iteration }}</td>
                                 <td class="td font-medium text-slate-900">{{ $r['nama'] }}</td>
-                                @foreach ($r['perTipe'] as $n)
+                                @foreach ($r['values'] as $n)
                                     <td class="td text-center {{ $n === 0 ? 'text-slate-300' : '' }}">{{ $n }}</td>
                                 @endforeach
                                 <td class="td text-center font-semibold">{{ $r['total'] }}</td>
@@ -99,7 +111,7 @@
                                 @foreach ($kolom as $n)
                                     <td class="td text-center">{{ $n }}</td>
                                 @endforeach
-                                <td class="td text-center">{{ $totalGardu }}</td>
+                                <td class="td text-center">{{ $totalMetrik }}</td>
                             </tr>
                         </tfoot>
                     @endif
@@ -107,11 +119,17 @@
             </div>
         </div>
     @else
-        <div class="card mt-6 p-10 text-center text-sm text-slate-400">Belum ada data gardu untuk pilihan ini.</div>
+        <div class="card mt-6 p-10 text-center text-sm text-slate-400">
+            @if ($totalGardu === 0)
+                Belum ada data gardu untuk pilihan ini.
+            @else
+                Belum ada data {{ $labelMetrik }} untuk pilihan ini. Data perangkat diisi lewat menu Data Gardu &rarr; Edit.
+            @endif
+        </div>
     @endif
 @endsection
 
-@if ($totalGardu > 0)
+@if ($totalMetrik > 0)
     @push('scripts')
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
         <script>
