@@ -2,104 +2,164 @@
 
 namespace App\Http\Controllers;
 
-use App\Support\CascadeData;
 use App\Models\Gardu;
 use App\Models\Gerbang;
+use App\Models\PerangkatGardu;
+use App\Models\RuasTol;
 use App\Models\TipeGardu;
-use App\Support\XlsxWriter;
+use App\Support\CascadeData;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class LaporanController extends Controller
 {
+    private const PALET = ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899'];
+
+    private const LABEL_PERANGKAT = [
+        'reader_atas' => 'Reader Atas',
+        'reader_bawah' => 'Reader Bawah',
+        'cctv_lajur' => 'CCTV Lajur',
+        'cctv_gandar' => 'CCTV Gandar',
+        'lpr_custom' => 'LPR Custom',
+        'pyramid_atas' => 'Pyramid Atas',
+        'pyramid_bawah' => 'Pyramid Bawah',
+        'hs_atas' => 'HS Atas',
+        'hs_bawah' => 'HS Bawah',
+    ];
+
     public function index(Request $request): View
-    {
-        $this->validateFilters($request);
-
-        return view('laporan.index', [
-            'gardu' => $this->query($request)->paginate(15)->withQueryString(),
-            'tree' => CascadeData::tree(),
-            'tipeList' => TipeGardu::orderBy('id')->get(),
-            'filters' => $request->only([
-                'ruas_id', 'gerbang_id', 'gardu_id', 'tipe_gardu_id', 'status', 'dari', 'sampai',
-            ]),
-        ]);
-    }
-
-    public function export(Request $request): BinaryFileResponse
-    {
-        $this->validateFilters($request);
-
-        $rows = [[
-            'No', 'Ruas Tol', 'Gerbang', 'No Gardu', 'Tipe Gardu', 'Arah', 'Status',
-            'Reader Atas', 'Reader Bawah', 'CCTV Lajur', 'CCTV Gandar', 'LPR Custom',
-            'Pyramid Atas', 'Pyramid Bawah', 'HS Atas', 'HS Bawah',
-            'ALB Tollpro', 'ALB Highspeed', 'ALB GRS', 'ALB Automation',
-            'Printer CSS', 'Catatan', 'Tanggal Input',
-        ]];
-
-        $ya = fn ($v) => $v ? 'Ya' : 'Tidak';
-
-        foreach ($this->query($request)->get() as $i => $g) {
-            $p = $g->perangkat;
-
-            $rows[] = [
-                $i + 1,
-                $g->gerbang->ruas->nama_ruas ?? '',
-                $g->gerbang->nama_gerbang,
-                $g->nomor_gardu,
-                $g->tipe->nama_tipe ?? '',
-                $g->arah ?? '',
-                $g->status,
-                (int) ($p->reader_atas ?? 0), (int) ($p->reader_bawah ?? 0),
-                (int) ($p->cctv_lajur ?? 0), (int) ($p->cctv_gandar ?? 0),
-                (int) ($p->lpr_custom ?? 0),
-                (int) ($p->pyramid_atas ?? 0), (int) ($p->pyramid_bawah ?? 0),
-                (int) ($p->hs_atas ?? 0), (int) ($p->hs_bawah ?? 0),
-                $ya($p->alb_tollpro ?? 0), $ya($p->alb_highspeed ?? 0),
-                $ya($p->alb_grs ?? 0), $ya($p->alb_automation ?? 0),
-                $p->printer_css ?? '',
-                $g->catatan ?? '',
-                $g->created_at?->format('d/m/Y'),
-            ];
-        }
-
-        $path = XlsxWriter::build($rows, 'Identitas Gardu');
-
-        return response()
-            ->download($path, 'identitas-gardu-'.now()->format('Ymd-His').'.xlsx', [
-                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            ])
-            ->deleteFileAfterSend(true);
-    }
-
-    private function validateFilters(Request $request): void
     {
         $request->validate([
             'ruas_id' => ['nullable', 'integer'],
             'gerbang_id' => ['nullable', 'integer'],
-            'gardu_id' => ['nullable', 'integer'],
-            'tipe_gardu_id' => ['nullable', 'integer'],
-            'status' => ['nullable', 'in:'.implode(',', Gardu::STATUS)],
-            'dari' => ['nullable', 'date'],
-            'sampai' => ['nullable', 'date', 'after_or_equal:dari'],
         ]);
-    }
 
-   private function query(Request $request)
-    {
-        return Gardu::with(['gerbang.ruas', 'tipe', 'perangkat'])
-            ->join('gerbang', 'gerbang.id', '=', 'gardu.gerbang_id')
-            ->select('gardu.*')
-            ->when($request->filled('ruas_id'), fn ($q) => $q->where('gerbang.ruas_id', $request->input('ruas_id')))
-            ->when($request->filled('gerbang_id'), fn ($q) => $q->where('gardu.gerbang_id', $request->input('gerbang_id')))
-            ->when($request->filled('gardu_id'), fn ($q) => $q->where('gardu.id', $request->input('gardu_id')))
-            ->when($request->filled('tipe_gardu_id'), fn ($q) => $q->where('gardu.tipe_gardu_id', $request->input('tipe_gardu_id')))
-            ->when($request->filled('status'), fn ($q) => $q->where('gardu.status', $request->input('status')))
-            ->when($request->filled('dari'), fn ($q) => $q->whereDate('gardu.created_at', '>=', $request->input('dari')))
-            ->when($request->filled('sampai'), fn ($q) => $q->whereDate('gardu.created_at', '<=', $request->input('sampai')))
-            ->orderBy('gerbang.nama_gerbang')
-            ->orderBy('gardu.nomor_gardu');
+        $ruasId = $request->input('ruas_id');
+        $gerbangId = $request->input('gerbang_id');
+
+        $tipeList = TipeGardu::orderBy('id')->get(['id', 'nama_tipe']);
+
+        $gerbangList = Gerbang::query()
+            ->when($ruasId, fn ($q) => $q->where('ruas_id', $ruasId))
+            ->when($gerbangId, fn ($q) => $q->where('id', $gerbangId))
+            ->orderBy('nama_gerbang')
+            ->get(['id', 'nama_gerbang']);
+
+        $ids = $gerbangList->pluck('id');
+
+        // Jumlah gardu per gerbang per tipe
+        $counts = Gardu::query()
+            ->whereIn('gerbang_id', $ids)
+            ->selectRaw('gerbang_id, tipe_gardu_id, COUNT(*) as total')
+            ->groupBy('gerbang_id', 'tipe_gardu_id')
+            ->get()
+            ->groupBy('gerbang_id');
+
+        $rows = $gerbangList->map(function ($g) use ($counts, $tipeList) {
+            $byTipe = $counts->get($g->id, collect())->pluck('total', 'tipe_gardu_id');
+
+            return [
+                'nama' => $g->nama_gerbang,
+                'perTipe' => $tipeList->map(fn ($t) => (int) ($byTipe[$t->id] ?? 0))->all(),
+                'total' => (int) $byTipe->sum(),
+            ];
+        });
+
+        // Gardu yang belum punya tipe
+        $seriesNames = $tipeList->pluck('nama_tipe')->all();
+        if ($rows->contains(fn ($r) => $r['total'] > array_sum($r['perTipe']))) {
+            $seriesNames[] = 'Tanpa tipe';
+            $rows = $rows->map(function ($r) {
+                $r['perTipe'][] = $r['total'] - array_sum($r['perTipe']);
+
+                return $r;
+            });
+        }
+
+        $warna = fn (int $i, string $nama) => $nama === 'Tanpa tipe'
+            ? '#94a3b8'
+            : self::PALET[$i % count(self::PALET)];
+
+        $totalGardu = (int) $rows->sum('total');
+        $kolom = collect($seriesNames)->keys()
+            ->map(fn ($i) => (int) $rows->sum(fn ($r) => $r['perTipe'][$i]))
+            ->all();
+
+        $pie = collect($seriesNames)->map(fn ($nama, $i) => [
+            'nama' => $nama,
+            'jumlah' => $kolom[$i],
+            'persen' => $totalGardu > 0 ? round($kolom[$i] / $totalGardu * 100, 1) : 0,
+            'warna' => $warna($i, $nama),
+        ])->values();
+
+        $judul = $gerbangId
+            ? ($gerbangList->first()->nama_gerbang ?? 'Gerbang')
+            : ($ruasId ? 'Ruas '.(RuasTol::find($ruasId)->nama_ruas ?? '') : 'Semua Gerbang');
+
+        if ($gerbangId) {
+            // Satu gerbang dipilih: rincian jumlah perangkat
+            $sum = DB::table('perangkat_gardu')
+                ->join('gardu', 'gardu.id', '=', 'perangkat_gardu.gardu_id')
+                ->where('gardu.gerbang_id', $gerbangId)
+                ->selectRaw(collect(PerangkatGardu::COUNT_FIELDS)
+                    ->map(fn ($f) => "COALESCE(SUM(perangkat_gardu.{$f}), 0) as {$f}")
+                    ->implode(', '))
+                ->first();
+
+            $utama = ['reader_atas', 'reader_bawah', 'cctv_lajur', 'cctv_gandar'];
+            $labels = [];
+            $values = [];
+            foreach (self::LABEL_PERANGKAT as $field => $label) {
+                $nilai = (int) ($sum->{$field} ?? 0);
+                if ($nilai > 0 || in_array($field, $utama, true)) {
+                    $labels[] = $label;
+                    $values[] = $nilai;
+                }
+            }
+
+            $bar = [
+                'stacked' => false,
+                'title' => 'Perangkat di Gerbang '.$judul,
+                'subtitle' => 'Total jumlah perangkat pada seluruh gardu',
+                'labels' => $labels,
+                'datasets' => [[
+                    'label' => 'Jumlah',
+                    'data' => $values,
+                    'backgroundColor' => '#2563eb',
+                    'borderRadius' => 4,
+                    'maxBarThickness' => 56,
+                ]],
+            ];
+        } else {
+            // Banyak gerbang: gardu per gerbang, dirinci per tipe
+            $bar = [
+                'stacked' => true,
+                'title' => 'Jumlah Gardu per Gerbang',
+                'subtitle' => 'Dirinci menurut tipe gardu — '.$judul,
+                'labels' => $rows->pluck('nama')->all(),
+                'datasets' => collect($seriesNames)->map(fn ($nama, $i) => [
+                    'label' => $nama,
+                    'data' => $rows->map(fn ($r) => $r['perTipe'][$i])->all(),
+                    'backgroundColor' => $warna($i, $nama),
+                    'maxBarThickness' => 48,
+                ])->values()->all(),
+            ];
+        }
+
+        return view('laporan.index', [
+            'tree' => CascadeData::tree(),
+            'ruasId' => $ruasId,
+            'gerbangId' => $gerbangId,
+            'judul' => $judul,
+            'totalGerbang' => $rows->count(),
+            'totalGardu' => $totalGardu,
+            'totalAktif' => Gardu::whereIn('gerbang_id', $ids)->where('status', 'Aktif')->count(),
+            'seriesNames' => $seriesNames,
+            'rows' => $rows,
+            'kolom' => $kolom,
+            'pie' => $pie,
+            'bar' => $bar,
+        ]);
     }
 }

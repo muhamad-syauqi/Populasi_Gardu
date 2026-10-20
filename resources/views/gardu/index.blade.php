@@ -7,7 +7,12 @@
             <h1 class="text-2xl font-bold text-slate-900">Data Gardu</h1>
             <p class="text-sm text-slate-500">Kelola data identitas gardu.</p>
         </div>
-        <a href="{{ route('gardu.create') }}" class="btn btn-primary"><x-icon name="plus" class="h-4 w-4" /> Tambah Gardu</a>
+        <div class="flex flex-wrap gap-2">
+            <a href="{{ route('gardu.export', request()->query()) }}" class="btn btn-success">
+                <x-icon name="download" class="h-4 w-4" /> Download Excel
+            </a>
+            <a href="{{ route('gardu.create') }}" class="btn btn-primary"><x-icon name="plus" class="h-4 w-4" /> Tambah Gardu</a>
+        </div>
     </div>
 
     <div class="card">

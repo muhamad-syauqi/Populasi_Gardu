@@ -21,8 +21,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
     Route::resource('gerbang', GerbangController::class)->except('show');
+
+    // harus sebelum resource 'gardu' agar tidak dianggap /gardu/{id}
+    Route::get('/gardu/export', [GarduController::class, 'export'])->name('gardu.export');
     Route::resource('gardu', GarduController::class);
 
     Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
-    Route::get('/laporan/export', [LaporanController::class, 'export'])->name('laporan.export');
 });
