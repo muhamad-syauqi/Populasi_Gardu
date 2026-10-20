@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PerangkatGardu;
 use App\Models\Gardu;
 use App\Models\Gerbang;
 use App\Models\RuasTol;
@@ -296,9 +297,9 @@ class LaporanController extends Controller
             ->whereIn('gardu.gerbang_id', $ids)
             ->get(['gardu.gerbang_id', 'perangkat_gardu.printer_css']);
 
-        $names = $data->map(fn ($d) => $nama($d->printer_css))
-            ->reject(fn ($n) => $n === $kosong)
-            ->unique()->sort()->values()->all();
+        $names = collect(PerangkatGardu::PRINTER_OPTIONS)
+            ->merge($data->map(fn ($d) => $nama($d->printer_css))->reject(fn ($n) => $n === $kosong))
+            ->unique()->values()->all();
 
         if ($data->contains(fn ($d) => $nama($d->printer_css) === $kosong)) {
             $names[] = $kosong;

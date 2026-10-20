@@ -191,7 +191,7 @@ class GarduController extends Controller
             'arah' => ['nullable', Rule::in(Gardu::ARAH)],
             'status' => ['required', Rule::in(Gardu::STATUS)],
             'catatan' => ['nullable', 'string', 'max:2000'],
-            'printer_css' => ['nullable', 'string', 'max:255'],
+            'printer_css' => ['nullable', Rule::in(PerangkatGardu::PRINTER_OPTIONS)],
         ];
 
         foreach (PerangkatGardu::COUNT_FIELDS as $field) {

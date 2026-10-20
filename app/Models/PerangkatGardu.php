@@ -22,6 +22,13 @@ class PerangkatGardu extends Model
         'alb_automation' => 'Automation',
     ];
 
+    public const PRINTER_OPTIONS = [
+        'HP Lj P1101',
+        'HP Lj M12W',
+        'HP Lj 107w',
+        'HP Lj 108w',
+    ];
+
     protected $table = 'perangkat_gardu';
 
     protected $fillable = [
