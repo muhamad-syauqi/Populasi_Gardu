@@ -70,12 +70,10 @@
                     ['CCTV', ['cctv_lajur' => 'Lajur', 'cctv_gandar' => 'Gandar']],
                 ];
 
-                $lprFields = [
-                    'lpr_custom' => 'Custom',
-                    'pyramid_atas' => 'Pyramid Atas',
-                    'pyramid_bawah' => 'Pyramid Bawah',
-                    'hs_atas' => 'HS Atas',
-                    'hs_bawah' => 'HS Bawah',
+                $lprGroups = [
+                    'Custom' => ['lpr_custom_atas', 'lpr_custom_bawah'],
+                    'Pyramid' => ['pyramid_atas', 'pyramid_bawah'],
+                    'HS' => ['hs_atas', 'hs_bawah'],
                 ];
             @endphp
 
@@ -108,14 +106,24 @@
                     </div>
                 </fieldset>
 
-                <fieldset class="rounded-lg border border-slate-200 p-3 sm:col-span-2">
+                <fieldset class="rounded-lg border border-slate-200 p-3 sm:col-span-2 lg:col-span-3">
                     <legend class="px-1 text-xs font-semibold text-slate-700">LPR</legend>
-                    <div class="grid grid-cols-2 gap-2 sm:grid-cols-5">
-                        @foreach ($lprFields as $name => $label)
-                            <div>
-                                <label for="{{ $name }}" class="label">{{ $label }}</label>
-                                <input id="{{ $name }}" name="{{ $name }}" type="number" min="0" max="99" value="{{ $num($name) }}" class="input">
-                                @if ($err($name)) <p class="mt-1 text-xs text-red-600">{{ $err($name) }}</p> @endif
+                    <div class="grid gap-3 sm:grid-cols-3">
+                        @foreach ($lprGroups as $jenis => [$atas, $bawah])
+                            <div class="rounded-lg border border-slate-200 p-3">
+                                <div class="mb-2 text-xs font-semibold text-slate-700">{{ $loop->iteration }}. {{ $jenis }}</div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label for="{{ $atas }}" class="label">Atas</label>
+                                        <input id="{{ $atas }}" name="{{ $atas }}" type="number" min="0" max="99" value="{{ $num($atas) }}" class="input">
+                                        @if ($err($atas)) <p class="mt-1 text-xs text-red-600">{{ $err($atas) }}</p> @endif
+                                    </div>
+                                    <div>
+                                        <label for="{{ $bawah }}" class="label">Bawah</label>
+                                        <input id="{{ $bawah }}" name="{{ $bawah }}" type="number" min="0" max="99" value="{{ $num($bawah) }}" class="input">
+                                        @if ($err($bawah)) <p class="mt-1 text-xs text-red-600">{{ $err($bawah) }}</p> @endif
+                                    </div>
+                                </div>
                             </div>
                         @endforeach
                     </div>

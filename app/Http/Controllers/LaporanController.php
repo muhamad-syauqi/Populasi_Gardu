@@ -41,7 +41,7 @@ class LaporanController extends Controller
         'reader' => ['Atas' => ['reader_atas'], 'Bawah' => ['reader_bawah']],
         'cctv' => ['Lajur' => ['cctv_lajur'], 'Gandar' => ['cctv_gandar']],
         'lpr' => [
-            'Custom' => ['lpr_custom'],
+            'Custom' => ['lpr_custom_atas', 'lpr_custom_bawah'],
             'Pyramid' => ['pyramid_atas', 'pyramid_bawah'],
             'HS' => ['hs_atas', 'hs_bawah'],
         ],
@@ -60,7 +60,7 @@ class LaporanController extends Controller
         'Reader Bawah' => ['reader_bawah'],
         'CCTV Lajur' => ['cctv_lajur'],
         'CCTV Gandar' => ['cctv_gandar'],
-        'LPR Custom' => ['lpr_custom'],
+        'LPR Custom' => ['lpr_custom_atas', 'lpr_custom_bawah'],
         'LPR Pyramid' => ['pyramid_atas', 'pyramid_bawah'],
         'LPR HS' => ['hs_atas', 'hs_bawah'],
         'ALB Tollpro' => ['alb_tollpro'],

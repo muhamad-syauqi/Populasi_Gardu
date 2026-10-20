@@ -4,16 +4,16 @@
 @php
     $p = $gardu->perangkat;
     $n = fn (string $f) => (int) ($p->{$f} ?? 0);
+
     $cards = [
-        ['Reader', [['Atas', $n('reader_atas')], ['Bawah', $n('reader_bawah')]], false],
-        ['CCTV', [['Lajur', $n('cctv_lajur')], ['Gandar', $n('cctv_gandar')]], false],
-        ['LPR', [
-            ['Custom', $n('lpr_custom')],
-            ['Pyramid Atas', $n('pyramid_atas')],
-            ['Pyramid Bawah', $n('pyramid_bawah')],
-            ['HS Atas', $n('hs_atas')],
-            ['HS Bawah', $n('hs_bawah')],
-        ], true],
+        ['Reader', [['Atas', $n('reader_atas')], ['Bawah', $n('reader_bawah')]]],
+        ['CCTV', [['Lajur', $n('cctv_lajur')], ['Gandar', $n('cctv_gandar')]]],
+    ];
+
+    $lprGroups = [
+        'Custom' => ['lpr_custom_atas', 'lpr_custom_bawah'],
+        'Pyramid' => ['pyramid_atas', 'pyramid_bawah'],
+        'HS' => ['hs_atas', 'hs_bawah'],
     ];
 @endphp
 
@@ -68,8 +68,8 @@
         <h3 class="mb-3 mt-6 text-sm font-semibold text-slate-800">Perangkat dan Sistem</h3>
 
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            @foreach ($cards as [$title, $items, $wide])
-                <div class="rounded-lg border border-slate-200 p-4 {{ $wide ? 'sm:col-span-2' : '' }}">
+            @foreach ($cards as [$title, $items])
+                <div class="rounded-lg border border-slate-200 p-4">
                     <div class="mb-2 text-sm font-semibold text-slate-800">{{ $title }}</div>
                     <div class="flex flex-wrap gap-x-8 gap-y-3">
                         @foreach ($items as [$label, $value])
@@ -96,6 +96,27 @@
                         </li>
                     @endforeach
                 </ul>
+            </div>
+
+            <div class="rounded-lg border border-slate-200 p-4 sm:col-span-2 lg:col-span-3">
+                <div class="mb-3 text-sm font-semibold text-slate-800">LPR</div>
+                <div class="grid gap-3 sm:grid-cols-3">
+                    @foreach ($lprGroups as $jenis => [$atas, $bawah])
+                        <div class="rounded-lg bg-slate-50 p-3">
+                            <div class="mb-2 text-xs font-semibold text-slate-700">{{ $loop->iteration }}. {{ $jenis }}</div>
+                            <div class="flex gap-8">
+                                <div>
+                                    <div class="text-xs text-slate-500">Atas</div>
+                                    <div class="text-lg font-semibold text-slate-900">{{ $n($atas) }}</div>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-slate-500">Bawah</div>
+                                    <div class="text-lg font-semibold text-slate-900">{{ $n($bawah) }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
             </div>
 
             <div class="rounded-lg border border-slate-200 p-4">

@@ -38,7 +38,8 @@ class GarduController extends Controller
     {
         $rows = [[
             'No', 'Ruas Tol', 'Gerbang', 'No Gardu', 'Tipe Gardu', 'Arah', 'Status',
-            'Reader Atas', 'Reader Bawah', 'CCTV Lajur', 'CCTV Gandar', 'LPR Custom',
+            'Reader Atas', 'Reader Bawah', 'CCTV Lajur', 'CCTV Gandar', 
+            'LPR Custom Atas', 'LPR Custom Bawah',
             'Pyramid Atas', 'Pyramid Bawah', 'HS Atas', 'HS Bawah',
             'ALB Tollpro', 'ALB Highspeed', 'ALB GRS', 'ALB Automation',
             'Printer CSS', 'Catatan', 'Tanggal Input',
@@ -61,7 +62,7 @@ class GarduController extends Controller
                 $g->status,
                 (int) ($p->reader_atas ?? 0), (int) ($p->reader_bawah ?? 0),
                 (int) ($p->cctv_lajur ?? 0), (int) ($p->cctv_gandar ?? 0),
-                (int) ($p->lpr_custom ?? 0),
+                (int) ($p->lpr_custom_atas ?? 0), (int) ($p->lpr_custom_bawah ?? 0),
                 (int) ($p->pyramid_atas ?? 0), (int) ($p->pyramid_bawah ?? 0),
                 (int) ($p->hs_atas ?? 0), (int) ($p->hs_bawah ?? 0),
                 $ya($p->alb_tollpro ?? 0), $ya($p->alb_highspeed ?? 0),

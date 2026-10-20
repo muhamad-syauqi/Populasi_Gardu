@@ -10,7 +10,7 @@ class PerangkatGardu extends Model
     public const COUNT_FIELDS = [
         'reader_atas', 'reader_bawah',
         'cctv_lajur', 'cctv_gandar',
-        'lpr_custom',
+        'lpr_custom_atas', 'lpr_custom_bawah',
         'pyramid_atas', 'pyramid_bawah',
         'hs_atas', 'hs_bawah',
     ];
