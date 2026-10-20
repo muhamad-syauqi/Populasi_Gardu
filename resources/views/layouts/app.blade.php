@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'Dashboard') · INTRACS</title>
+    <link rel="icon" type="image/png" href="{{ asset('intracs.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-slate-100 font-sans text-slate-800 antialiased">
@@ -11,9 +12,10 @@
     <div id="sidebar-backdrop" class="fixed inset-0 z-30 hidden bg-black/50 lg:hidden"></div>
 
     <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col bg-navy-900 transition-transform lg:sticky lg:top-0 lg:h-screen lg:translate-x-0">
-        <div class="flex items-center gap-2 px-6 py-6">
-            <x-icon name="bolt" class="h-7 w-7 text-blue-400" />
-            <span class="text-lg font-bold tracking-wider text-white">INTRACS</span>
+        <div class="px-4 py-6">
+            <a href="{{ route('dashboard') }}" class="block">
+                <img src="{{ asset('intracs-kuning.png') }}" alt="Intracs" class="h-10 w-auto">
+            </a>
         </div>
 
         <nav class="flex-1 space-y-1 px-4">

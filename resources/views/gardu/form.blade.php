@@ -68,13 +68,18 @@
                 $groups = [
                     ['Jumlah Reader', ['reader_atas' => 'Atas', 'reader_bawah' => 'Bawah']],
                     ['CCTV', ['cctv_lajur' => 'Lajur', 'cctv_gandar' => 'Gandar']],
-                    ['LPR Custom', ['lpr_custom' => 'Atas', 'custom_bawah' => 'Bawah']],
-                    ['Pyramid', ['pyramid_atas' => 'Atas', 'pyramid_bawah' => 'Bawah']],
-                    ['HS', ['hs_atas' => 'Atas', 'hs_bawah' => 'Bawah']],
+                ];
+
+                $lprFields = [
+                    'lpr_custom' => 'Custom',
+                    'pyramid_atas' => 'Pyramid Atas',
+                    'pyramid_bawah' => 'Pyramid Bawah',
+                    'hs_atas' => 'HS Atas',
+                    'hs_bawah' => 'HS Bawah',
                 ];
             @endphp
 
-            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="grid grid-flow-dense gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($groups as [$title, $fields])
                     <fieldset class="rounded-lg border border-slate-200 p-3">
                         <legend class="px-1 text-xs font-semibold text-slate-700">{{ $title }}</legend>
@@ -96,9 +101,22 @@
                         @foreach (\App\Models\PerangkatGardu::ALB_FIELDS as $name => $label)
                             <label class="flex items-center gap-2 text-sm text-slate-700">
                                 <input type="checkbox" name="{{ $name }}" value="1" class="rounded border-slate-300 text-blue-600"
-                                       @checked($had ? (bool) old($name) : (bool) ($perangkat->{$name} ?? false))>
+                                    @checked($had ? (bool) old($name) : (bool) ($perangkat->{$name} ?? false))>
                                 {{ $label }}
                             </label>
+                        @endforeach
+                    </div>
+                </fieldset>
+
+                <fieldset class="rounded-lg border border-slate-200 p-3 sm:col-span-2">
+                    <legend class="px-1 text-xs font-semibold text-slate-700">LPR</legend>
+                    <div class="grid grid-cols-2 gap-2 sm:grid-cols-5">
+                        @foreach ($lprFields as $name => $label)
+                            <div>
+                                <label for="{{ $name }}" class="label">{{ $label }}</label>
+                                <input id="{{ $name }}" name="{{ $name }}" type="number" min="0" max="99" value="{{ $num($name) }}" class="input">
+                                @if ($err($name)) <p class="mt-1 text-xs text-red-600">{{ $err($name) }}</p> @endif
+                            </div>
                         @endforeach
                     </div>
                 </fieldset>
