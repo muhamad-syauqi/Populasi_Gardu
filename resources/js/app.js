@@ -38,3 +38,7 @@ document.querySelectorAll('[data-dismiss]').forEach((btn) => {
     btn.addEventListener('click', () => btn.closest('[role="alert"]')?.remove());
 });
 initCascades();
+
+window.addEventListener('pageshow', (event) => {
+    if (event.persisted) window.location.reload();
+});

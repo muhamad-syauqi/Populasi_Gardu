@@ -120,7 +120,7 @@
             </div>
 
             <div class="rounded-lg border border-slate-200 p-4">
-                <div class="mb-2 text-sm font-semibold text-slate-800">Printer CSS</div>
+                <div class="mb-2 text-sm font-semibold text-slate-800">Printer CS</div>
                 <div class="text-sm text-slate-700">{{ $p->printer_css ?? '-' }}</div>
             </div>
         </div>

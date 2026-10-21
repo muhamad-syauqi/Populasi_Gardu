@@ -24,12 +24,12 @@ class LaporanController extends Controller
         'cctv' => 'CCTV',
         'lpr' => 'LPR',
         'alb' => 'ALB',
-        'printer' => 'Printer CSS',
+        'printer' => 'Printer CS',
     ];
 
     private const SUBJUDUL = [
         'tipe' => 'Jumlah gardu menurut tipe',
-        'semua' => 'Reader, CCTV, LPR (Custom, Pyramid, HS), ALB, dan Printer CSS (ALB dan Printer CSS dihitung per gardu)',
+        'semua' => 'Reader, CCTV, LPR (Custom, Pyramid, HS), ALB, dan Printer CS (ALB dan Printer CS dihitung per gardu)',
         'reader' => 'Jumlah reader pada seluruh gardu',
         'cctv' => 'Jumlah CCTV pada seluruh gardu',
         'lpr' => 'Jumlah LPR (Custom, Pyramid, dan HS) pada seluruh gardu',        'alb' => 'Jumlah gardu yang memiliki tiap jenis ALB',

@@ -5,10 +5,6 @@ namespace App\Support;
 use App\Models\PerangkatGardu;
 use Illuminate\Support\Collection;
 
-/**
- * Membuat file Excel identitas gardu dengan layout seperti POPULASI_GARDU:
- * header bergrup (Tipe Gardu, Reader, CCTV, LPR, ALB, Printer CSS) dan baris total di bawah.
- */
 class GarduExcel
 {
     private const WARNA_TIPE = [
@@ -40,11 +36,11 @@ class GarduExcel
         $printers = PerangkatGardu::PRINTER_OPTIONS;
         $nTipe = $tipeList->count();
 
-        // Posisi kolom (A=1): B No, C Gerbang, D No Gardu, lalu tiap kelompok
         $cNo = 2;
         $cGerbang = 3;
         $cNomor = 4;
-        $cTipe = 5;
+        $cArah = 5;
+        $cTipe = $cArah + 2;
         $cReader = $cTipe + $nTipe;
         $cCctv = $cReader + 2;
         $cLpr = $cCctv + 2;
@@ -67,6 +63,10 @@ class GarduExcel
             $this->put(3, $c, $teks, $this->head('92D050'));
             $this->merge($c, 3, $c, 5);
         }
+
+        $this->group(3, $cArah, 2, 'Arah', '92D050');
+        $this->column($cArah, 'Entrance', 'A9D08E');
+        $this->column($cArah + 1, 'Exit', 'F4B084');
 
         $this->group(3, $cTipe, $nTipe, 'Tipe Gardu', '92D050');
         foreach ($tipeList as $i => $t) {
@@ -94,13 +94,13 @@ class GarduExcel
             $this->column($cAlb + $i, $teks, 'D9C3E8');
         }
 
-        $this->group(3, $cPrinter, count($printers), 'Printer CSS (Pultol)', 'F8CBAD');
+        $this->group(3, $cPrinter, count($printers), 'Printer CS (Pultol)', 'F8CBAD');
         foreach ($printers as $i => $teks) {
             $this->column($cPrinter + $i, $teks, 'F8CBAD');
         }
 
         // ===== Data =====
-        $sums = array_fill($cTipe, $cLast - $cTipe + 1, 0);
+        $sums = array_fill($cArah, $cLast - $cArah + 1, 0);
         $groups = [];
 
         foreach ($gardu as $i => $g) {
@@ -116,7 +116,10 @@ class GarduExcel
 
             $this->put($r, $cNomor, (string) $g->nomor_gardu, 'nomor');
 
-            $nilai = [];
+            $nilai = [
+                $cArah => $g->arah === 'Entrance' ? 1 : 0,
+                $cArah + 1 => $g->arah === 'Exit' ? 1 : 0,
+            ];
             foreach ($tipeList as $k => $t) {
                 $nilai[$cTipe + $k] = ($g->tipe_gardu_id !== null && (int) $g->tipe_gardu_id === (int) $t->id) ? 1 : 0;
             }
@@ -161,7 +164,7 @@ class GarduExcel
         // ===== Total =====
         $this->put($rTotal, $cNo, 'TOTAL', 'tot_label');
         $this->merge($cNo, $rTotal, $cNomor, $rTotal);
-        for ($c = $cTipe; $c <= $cLast; $c++) {
+        for ($c = $cArah; $c <= $cLast; $c++) {
             $this->put($rTotal, $c, $sums[$c], 'tot_num',
                 'SUM('.XlsxWriter::columnName($c).$rFirst.':'.XlsxWriter::columnName($c).$rLast.')');
         }
@@ -175,9 +178,11 @@ class GarduExcel
 
         // ===== Lebar kolom & tinggi baris =====
         $lebar = [1 => 2.7, $cNo => 6.5, $cGerbang => 20.7, $cNomor => 11];
-        for ($c = $cTipe; $c <= $cLast; $c++) {
+        for ($c = $cArah; $c <= $cLast; $c++) {
             $lebar[$c] = 10;
         }
+        $lebar[$cArah] = 12.5;
+        $lebar[$cArah + 1] = 12.5;
         for ($k = 0; $k < $nTipe; $k++) {
             $lebar[$cTipe + $k] = 12.5;
         }

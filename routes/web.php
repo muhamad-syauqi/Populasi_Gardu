@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GarduController;
 use App\Http\Controllers\GerbangController;
 use App\Http\Controllers\LaporanController;
+use App\Http\Middleware\PreventBackHistory;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -14,7 +15,7 @@ Route::middleware('guest')->group(function () {
         ->name('login.attempt');
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', PreventBackHistory::class])->group(function () {
     Route::get('/', fn () => redirect()->route('dashboard'));
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
