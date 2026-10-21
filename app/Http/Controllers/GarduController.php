@@ -7,7 +7,7 @@ use App\Models\Gerbang;
 use App\Models\PerangkatGardu;
 use App\Models\TipeGardu;
 use App\Support\CascadeData;
-use App\Support\XlsxWriter;
+use App\Support\GarduExcel;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -33,47 +33,21 @@ class GarduController extends Controller
         ]);
     }
 
-    /** Download Excel: mengikuti filter yang sedang aktif di halaman Data Gardu. */
     public function export(Request $request): BinaryFileResponse
     {
-        $rows = [[
-            'No', 'Ruas Tol', 'Gerbang', 'No Gardu', 'Tipe Gardu', 'Arah', 'Status',
-            'Reader Atas', 'Reader Bawah', 'CCTV Lajur', 'CCTV Gandar', 
-            'LPR Custom Atas', 'LPR Custom Bawah',
-            'Pyramid Atas', 'Pyramid Bawah', 'HS Atas', 'HS Bawah',
-            'ALB Tollpro', 'ALB Highspeed', 'ALB GRS', 'ALB Automation',
-            'Printer CSS', 'Catatan', 'Tanggal Input',
-        ]];
+        $data = $this->filteredQuery($request)
+            ->with(['gerbang.ruas', 'perangkat'])
+            ->reorder()
+            ->orderByRaw('gerbang.urutan IS NULL')
+            ->orderBy('gerbang.urutan')
+            ->orderBy('gerbang.nama_gerbang')
+            ->orderBy('gardu.nomor_gardu')
+            ->get();
 
-        $ya = fn ($v) => $v ? 'Ya' : 'Tidak';
+        $ruas = $data->map(fn ($g) => $g->gerbang->ruas->nama_ruas ?? null)->filter()->unique()->values();
+        $namaRuas = ($request->filled('ruas_id') && $ruas->count() === 1) ? $ruas->first() : 'Purbaleunyi';
 
-        $data = $this->filteredQuery($request)->with(['gerbang.ruas', 'perangkat'])->get();
-
-        foreach ($data as $i => $g) {
-            $p = $g->perangkat;
-
-            $rows[] = [
-                $i + 1,
-                $g->gerbang->ruas->nama_ruas ?? '',
-                $g->gerbang->nama_gerbang,
-                $g->nomor_gardu,
-                $g->tipe->nama_tipe ?? '',
-                $g->arah ?? '',
-                $g->status,
-                (int) ($p->reader_atas ?? 0), (int) ($p->reader_bawah ?? 0),
-                (int) ($p->cctv_lajur ?? 0), (int) ($p->cctv_gandar ?? 0),
-                (int) ($p->lpr_custom_atas ?? 0), (int) ($p->lpr_custom_bawah ?? 0),
-                (int) ($p->pyramid_atas ?? 0), (int) ($p->pyramid_bawah ?? 0),
-                (int) ($p->hs_atas ?? 0), (int) ($p->hs_bawah ?? 0),
-                $ya($p->alb_tollpro ?? 0), $ya($p->alb_highspeed ?? 0),
-                $ya($p->alb_grs ?? 0), $ya($p->alb_automation ?? 0),
-                $p->printer_css ?? '',
-                $g->catatan ?? '',
-                $g->created_at?->format('d/m/Y'),
-            ];
-        }
-
-        $path = XlsxWriter::build($rows, 'Identitas Gardu');
+        $path = GarduExcel::build($data, TipeGardu::orderBy('id')->get(), $namaRuas);
 
         return response()
             ->download($path, 'identitas-gardu-'.now()->format('Ymd-His').'.xlsx', [

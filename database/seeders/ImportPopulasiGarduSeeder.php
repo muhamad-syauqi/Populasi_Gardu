@@ -24,12 +24,12 @@ class ImportPopulasiGarduSeeder extends Seeder
                 $tipe[$nama] = TipeGardu::firstOrCreate(['nama_tipe' => $nama])->id;
             }
 
-            foreach ($data as $g) {
-                $ruas = RuasTol::firstOrCreate(['nama_ruas' => $g['ruas']]);
-                $gerbang = Gerbang::firstOrCreate([
-                    'ruas_id' => $ruas->id,
-                    'nama_gerbang' => $g['gerbang'],
-                ]);
+                foreach ($data as $i => $g) {
+                    $ruas = RuasTol::firstOrCreate(['nama_ruas' => $g['ruas']]);
+                    $gerbang = Gerbang::updateOrCreate(
+                        ['ruas_id' => $ruas->id, 'nama_gerbang' => $g['gerbang']],
+                        ['urutan' => $i + 1]
+                    );
 
                 foreach ($g['gardu'] as $row) {
                     $gardu = Gardu::updateOrCreate(

@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Gerbang extends Model
 {
     protected $table = 'gerbang';
-    protected $fillable = ['ruas_id', 'nama_gerbang', 'lokasi'];
+    protected $fillable = ['ruas_id', 'nama_gerbang', 'lokasi', 'urutan'];
 
     public function ruas(): BelongsTo
     {
