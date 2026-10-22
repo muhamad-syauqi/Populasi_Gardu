@@ -8,6 +8,7 @@
     $cards = [
         ['Reader', [['Atas', $n('reader_atas')], ['Bawah', $n('reader_bawah')]]],
         ['CCTV', [['Lajur', $n('cctv_lajur')], ['Gandar', $n('cctv_gandar')]]],
+         ['MR', [['Entrance', $n('mr_entrance')], ['Exit', $n('mr_exit')]]],
     ];
 
     $lprGroups = [

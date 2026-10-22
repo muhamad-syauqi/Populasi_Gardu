@@ -6,6 +6,7 @@
     <title>@yield('title', 'Dashboard') · INTRACS</title>
     <link rel="icon" type="image/png" href="{{ asset('intracs.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @stack('styles')
 </head>
 <body class="bg-slate-100 font-sans text-slate-800 antialiased">
 <div class="min-h-screen lg:flex">

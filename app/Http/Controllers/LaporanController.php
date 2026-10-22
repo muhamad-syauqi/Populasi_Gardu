@@ -22,6 +22,7 @@ class LaporanController extends Controller
         'semua' => 'Semua Perangkat',
         'reader' => 'Jumlah Reader',
         'cctv' => 'CCTV',
+        'mr' => 'MR',
         'lpr' => 'LPR',
         'alb' => 'ALB',
         'printer' => 'Printer CS',
@@ -29,18 +30,18 @@ class LaporanController extends Controller
 
     private const SUBJUDUL = [
         'tipe' => 'Jumlah gardu menurut tipe',
-        'semua' => 'Reader, CCTV, LPR (Custom, Pyramid, HS), ALB, dan Printer CS (ALB dan Printer CS dihitung per gardu)',
+        'semua' => 'Reader, CCTV, MR, LPR (Custom, Pyramid, HS), ALB, dan Printer CS (ALB dan Printer CS dihitung per gardu)',
         'reader' => 'Jumlah reader pada seluruh gardu',
         'cctv' => 'Jumlah CCTV pada seluruh gardu',
+        'mr' => 'Jumlah MR (Entrance dan Exit) pada seluruh gardu',
         'lpr' => 'Jumlah LPR (Custom, Pyramid, dan HS) pada seluruh gardu',        'alb' => 'Jumlah gardu yang memiliki tiap jenis ALB',
         'printer' => 'Jumlah gardu menurut tipe printer CSS',
     ];
 
-    /** Kolom perangkat_gardu untuk tiap metrik berjenis jumlah. */
-       /** Jenis per metrik: label => kolom perangkat_gardu yang dijumlahkan. */
     private const KOLOM = [
         'reader' => ['Atas' => ['reader_atas'], 'Bawah' => ['reader_bawah']],
         'cctv' => ['Lajur' => ['cctv_lajur'], 'Gandar' => ['cctv_gandar']],
+        'mr' => ['Entrance' => ['mr_entrance'], 'Exit' => ['mr_exit']],
         'lpr' => [
             'Custom' => ['lpr_custom_atas', 'lpr_custom_bawah'],
             'Pyramid' => ['pyramid_atas', 'pyramid_bawah'],
@@ -61,6 +62,8 @@ class LaporanController extends Controller
         'Reader Bawah' => ['reader_bawah'],
         'CCTV Lajur' => ['cctv_lajur'],
         'CCTV Gandar' => ['cctv_gandar'],
+        'MR Entrance' => ['mr_entrance'],
+        'MR Exit' => ['mr_exit'],
         'LPR Custom' => ['lpr_custom_atas', 'lpr_custom_bawah'],
         'LPR Pyramid' => ['pyramid_atas', 'pyramid_bawah'],
         'LPR HS' => ['hs_atas', 'hs_bawah'],
@@ -73,6 +76,7 @@ class LaporanController extends Controller
     private const PALET_SEMUA = [
         '#1d4ed8', '#60a5fa',            // Reader
         '#059669', '#6ee7b7',            // CCTV
+        '#e11d48', '#fda4af',            // MR (Entrance, Exit)
         '#f59e0b', '#b45309', '#fcd34d', // LPR (Custom, Pyramid, HS)
         '#7c3aed', '#a78bfa', '#db2777', '#f472b6', // ALB
         '#0891b2',                       // Printer CSS

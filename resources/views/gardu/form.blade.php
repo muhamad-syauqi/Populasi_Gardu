@@ -68,6 +68,7 @@
                 $groups = [
                     ['Jumlah Reader', ['reader_atas' => 'Atas', 'reader_bawah' => 'Bawah']],
                     ['CCTV', ['cctv_lajur' => 'Lajur', 'cctv_gandar' => 'Gandar']],
+                    ['MR', ['mr_entrance' => 'Entrance', 'mr_exit' => 'Exit']],
                 ];
 
                 $lprGroups = [

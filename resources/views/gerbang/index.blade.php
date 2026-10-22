@@ -45,7 +45,18 @@
                             <td class="td">{{ $gerbang->firstItem() + $loop->index }}</td>
                             <td class="td font-medium text-slate-900">{{ $g->nama_gerbang }}</td>
                             <td class="td">{{ $g->ruas->nama_ruas ?? '-' }}</td>
-                            <td class="td">{{ $g->lokasi ?: '-' }}</td>
+                            <td class="td">
+                                @if ($g->maps_url)
+                                    <a href="{{ $g->maps_url }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-blue-600 hover:underline" title="Buka di Google Maps">
+                                        <x-icon name="pin" class="h-4 w-4" /> {{ $g->koordinat }}
+                                    </a>
+                                    @if ($g->lokasi)
+                                        <div class="text-xs text-slate-500">{{ $g->lokasi }}</div>
+                                    @endif
+                                @else
+                                    {{ $g->lokasi ?: '-' }}
+                                @endif
+                            </td>
                             <td class="td text-center">{{ $g->gardu_count }}</td>
                             <td class="td">
                                 <div class="flex items-center justify-center gap-2">

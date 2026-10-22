@@ -43,7 +43,8 @@ class GarduExcel
         $cTipe = $cArah + 2;
         $cReader = $cTipe + $nTipe;
         $cCctv = $cReader + 2;
-        $cLpr = $cCctv + 2;
+        $cMr = $cCctv + 2;
+        $cLpr = $cMr + 2;
         $cAlb = $cLpr + 6;
         $cPrinter = $cAlb + 4;
         $cLast = $cPrinter + count($printers) - 1;
@@ -80,6 +81,10 @@ class GarduExcel
         $this->group(3, $cCctv, 2, 'CCTV', '92D050');
         $this->column($cCctv, 'Lajur', '92D050');
         $this->column($cCctv + 1, 'Gandar', '92D050');
+
+        $this->group(3, $cMr, 2, 'MR', '92D050');
+        $this->column($cMr, 'Entrance', '92D050');
+        $this->column($cMr + 1, 'Exit', '92D050');
 
         $this->group(3, $cLpr, 6, 'LPR', '9DC3E6');
         foreach (['Custom', 'Pyramid', 'HS'] as $i => $jenis) {
@@ -128,6 +133,8 @@ class GarduExcel
             $nilai[$cReader + 1] = (int) ($p->reader_bawah ?? 0);
             $nilai[$cCctv] = (int) ($p->cctv_lajur ?? 0);
             $nilai[$cCctv + 1] = (int) ($p->cctv_gandar ?? 0);
+            $nilai[$cMr] = (int) ($p->mr_entrance ?? 0);
+            $nilai[$cMr + 1] = (int) ($p->mr_exit ?? 0);
             $nilai[$cLpr] = (int) ($p->lpr_custom_atas ?? 0);
             $nilai[$cLpr + 1] = (int) ($p->lpr_custom_bawah ?? 0);
             $nilai[$cLpr + 2] = (int) ($p->pyramid_atas ?? 0);
