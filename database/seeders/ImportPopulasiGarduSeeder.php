@@ -40,8 +40,6 @@ class ImportPopulasiGarduSeeder extends Seeder
                     $gardu->perangkat()->updateOrCreate([], [
                         'reader_atas' => $row['reader_atas'],
                         'reader_bawah' => $row['reader_bawah'],
-                        'cctv_lajur' => $row['cctv_lajur'],
-                        'cctv_gandar' => $row['cctv_gandar'],
                     ]);
                 }
             }

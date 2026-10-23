@@ -44,10 +44,10 @@ class GarduExcel
         $cTipe = $cArah + 2;
         $cReader = $cTipe + $nTipe;
         $cCctv = $cReader + 2;
-        $cMr = $cCctv + 2;
+        $cMr = $cCctv + 4;      // CCTV: Vivotek (Lajur, Gandar) + Milesight (Lajur, Gandar)
         $cLpr = $cMr + 2;
         $cAlb = $cLpr + 6;
-        $cPrinter = $cAlb + 4;
+        $cPrinter = $cAlb + 5;
         $cPrinter2 = $cPrinter + count($printers);
         $cLast = $cPrinter2 + count($printers2) - 1;
 
@@ -80,9 +80,13 @@ class GarduExcel
         $this->column($cReader, 'Atas', '92D050');
         $this->column($cReader + 1, 'Bawah', '92D050');
 
-        $this->group(3, $cCctv, 2, 'CCTV', '92D050');
-        $this->column($cCctv, 'Lajur', '92D050');
-        $this->column($cCctv + 1, 'Gandar', '92D050');
+        $this->group(3, $cCctv, 4, 'CCTV', '92D050');
+        foreach (['Lajur', 'Gandar'] as $i => $jenis) {
+            $this->put(4, $cCctv + $i * 2, $jenis, $this->head('92D050'));
+            $this->merge($cCctv + $i * 2, 4, $cCctv + $i * 2 + 1, 4);
+            $this->put(5, $cCctv + $i * 2, 'Vivotek', $this->head('92D050'));
+            $this->put(5, $cCctv + $i * 2 + 1, 'Milesight', $this->head('92D050'));
+        }
 
         $this->group(3, $cMr, 2, 'MR', '92D050');
         $this->column($cMr, 'Entrance', '92D050');
@@ -96,8 +100,8 @@ class GarduExcel
             $this->put(5, $cLpr + $i * 2 + 1, 'Bawah', $this->head('9DC3E6'));
         }
 
-        $this->group(3, $cAlb, 4, 'ALB', 'D9C3E8');
-        foreach (['Tollpro', 'Highspeed', 'GRS', 'Automation'] as $i => $teks) {
+        $this->group(3, $cAlb, 5, 'ALB', 'D9C3E8');
+        foreach (['Tollpro', 'Highspeed', 'GRS', 'Automation', 'Akses Pro'] as $i => $teks) {
             $this->column($cAlb + $i, $teks, 'D9C3E8');
         }
 
@@ -138,8 +142,10 @@ class GarduExcel
 
             $nilai[$cReader] = (int) ($p->reader_atas ?? 0);
             $nilai[$cReader + 1] = (int) ($p->reader_bawah ?? 0);
-            $nilai[$cCctv] = (int) ($p->cctv_lajur ?? 0);
-            $nilai[$cCctv + 1] = (int) ($p->cctv_gandar ?? 0);
+            $nilai[$cCctv] = (int) ($p->cctv_vivotek_lajur ?? 0);
+            $nilai[$cCctv + 1] = (int) ($p->cctv_milesight_lajur ?? 0);
+            $nilai[$cCctv + 2] = (int) ($p->cctv_vivotek_gandar ?? 0);
+            $nilai[$cCctv + 3] = (int) ($p->cctv_milesight_gandar ?? 0);
             $nilai[$cMr] = (int) ($p->mr_entrance ?? 0);
             $nilai[$cMr + 1] = (int) ($p->mr_exit ?? 0);
             $nilai[$cLpr] = (int) ($p->lpr_custom_atas ?? 0);
@@ -152,6 +158,8 @@ class GarduExcel
             $nilai[$cAlb + 1] = (int) ($p->alb_highspeed ?? 0);
             $nilai[$cAlb + 2] = (int) ($p->alb_grs ?? 0);
             $nilai[$cAlb + 3] = (int) ($p->alb_automation ?? 0);
+            $nilai[$cAlb + 4] = (int) ($p->alb_akses_pro ?? 0);
+
             foreach ($printers as $k => $nama) {
                 $nilai[$cPrinter + $k] = (($p->printer_css ?? null) === $nama) ? 1 : 0;
             }
@@ -204,6 +212,9 @@ class GarduExcel
             $lebar[$cTipe + $k] = 12.5;
         }
         for ($k = 0; $k < 4; $k++) {
+            $lebar[$cCctv + $k] = 12.5;
+        }
+        for ($k = 0; $k < 5; $k++) {
             $lebar[$cAlb + $k] = 13;
         }
         for ($k = 0; $k < count($printers); $k++) {

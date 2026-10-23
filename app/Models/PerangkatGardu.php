@@ -9,7 +9,8 @@ class PerangkatGardu extends Model
 {
     public const COUNT_FIELDS = [
         'reader_atas', 'reader_bawah',
-        'cctv_lajur', 'cctv_gandar',
+        'cctv_vivotek_lajur', 'cctv_vivotek_gandar',
+        'cctv_milesight_lajur', 'cctv_milesight_gandar',
         'mr_entrance', 'mr_exit',
         'lpr_custom_atas', 'lpr_custom_bawah',
         'pyramid_atas', 'pyramid_bawah',
@@ -21,6 +22,7 @@ class PerangkatGardu extends Model
         'alb_highspeed' => 'Highspeed',
         'alb_grs' => 'GRS',
         'alb_automation' => 'Automation',
+        'alb_akses_pro' => 'Akses Pro'
     ];
 
     public const PRINTER_OPTIONS = [
@@ -28,12 +30,14 @@ class PerangkatGardu extends Model
         'HP Lj M12W',
         'HP Lj 107w',
         'HP Lj 108w',
+        'Epson L3210',
     ];
 
     public const PRINTER_CSS_OPTIONS = [
         'HP Lj M12W',
         'HP Lj 107W',
         'HP Lj 108W',
+        'Epson L320',
     ];
 
     protected $table = 'perangkat_gardu';
@@ -41,7 +45,7 @@ class PerangkatGardu extends Model
     protected $fillable = [
         'gardu_id',
         ...self::COUNT_FIELDS,
-        'alb_tollpro', 'alb_highspeed', 'alb_grs', 'alb_automation',
+        'alb_tollpro', 'alb_highspeed', 'alb_grs', 'alb_automation', 'alb_akses_pro',
         'printer_css', 'printer_css_2', 'catatan',
     ];
 

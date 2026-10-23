@@ -7,8 +7,12 @@
 
     $cards = [
         ['Reader', [['Atas', $n('reader_atas')], ['Bawah', $n('reader_bawah')]]],
-        ['CCTV', [['Lajur', $n('cctv_lajur')], ['Gandar', $n('cctv_gandar')]]],
-         ['MR', [['Entrance', $n('mr_entrance')], ['Exit', $n('mr_exit')]]],
+        ['MR', [['Entrance', $n('mr_entrance')], ['Exit', $n('mr_exit')]]],
+    ];
+
+    $cctvGroups = [
+        'Lajur' => ['Vivotek' => 'cctv_vivotek_lajur', 'Milesight' => 'cctv_milesight_lajur'],
+        'Gandar' => ['Vivotek' => 'cctv_vivotek_gandar', 'Milesight' => 'cctv_milesight_gandar'],
     ];
 
     $lprGroups = [
@@ -97,6 +101,25 @@
                         </li>
                     @endforeach
                 </ul>
+            </div>
+
+            <div class="rounded-lg border border-slate-200 p-4 sm:col-span-2 lg:col-span-3">
+                <div class="mb-3 text-sm font-semibold text-slate-800">CCTV</div>
+                <div class="grid gap-3 sm:grid-cols-2">
+                    @foreach ($cctvGroups as $jenis => $merekList)
+                        <div class="rounded-lg bg-slate-50 p-3">
+                            <div class="mb-2 text-xs font-semibold text-slate-700">{{ $loop->iteration }}. {{ $jenis }}</div>
+                            <div class="flex gap-8">
+                                @foreach ($merekList as $merek => $name)
+                                    <div>
+                                        <div class="text-xs text-slate-500">{{ $merek }}</div>
+                                        <div class="text-lg font-semibold text-slate-900">{{ $n($name) }}</div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
             </div>
 
             <div class="rounded-lg border border-slate-200 p-4 sm:col-span-2 lg:col-span-3">

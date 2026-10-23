@@ -67,8 +67,12 @@
             @php
                 $groups = [
                     ['Jumlah Reader', ['reader_atas' => 'Atas', 'reader_bawah' => 'Bawah']],
-                    ['CCTV', ['cctv_lajur' => 'Lajur', 'cctv_gandar' => 'Gandar']],
                     ['MR', ['mr_entrance' => 'Entrance', 'mr_exit' => 'Exit']],
+                ];
+
+                $cctvGroups = [
+                    'Lajur' => ['Vivotek' => 'cctv_vivotek_lajur', 'Milesight' => 'cctv_milesight_lajur'],
+                    'Gandar' => ['Vivotek' => 'cctv_vivotek_gandar', 'Milesight' => 'cctv_milesight_gandar'],
                 ];
 
                 $lprGroups = [
@@ -103,6 +107,26 @@
                                     @checked($had ? (bool) old($name) : (bool) ($perangkat->{$name} ?? false))>
                                 {{ $label }}
                             </label>
+                        @endforeach
+                    </div>
+                </fieldset>
+
+                <fieldset class="rounded-lg border border-slate-200 p-3 sm:col-span-2 lg:col-span-3">
+                    <legend class="px-1 text-xs font-semibold text-slate-700">CCTV</legend>
+                    <div class="grid gap-3 sm:grid-cols-2">
+                        @foreach ($cctvGroups as $jenis => $merekList)
+                            <div class="rounded-lg border border-slate-200 p-3">
+                                <div class="mb-2 text-xs font-semibold text-slate-700">{{ $loop->iteration }}. {{ $jenis }}</div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    @foreach ($merekList as $merek => $name)
+                                        <div>
+                                            <label for="{{ $name }}" class="label">{{ $merek }}</label>
+                                            <input id="{{ $name }}" name="{{ $name }}" type="number" min="0" max="99" value="{{ $num($name) }}" class="input">
+                                            @if ($err($name)) <p class="mt-1 text-xs text-red-600">{{ $err($name) }}</p> @endif
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
                         @endforeach
                     </div>
                 </fieldset>

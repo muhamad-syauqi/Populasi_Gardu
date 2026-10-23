@@ -31,17 +31,24 @@ class LaporanController extends Controller
 
     private const SUBJUDUL = [
         'tipe' => 'Jumlah gardu menurut tipe',
-        'semua' => 'Reader, CCTV, MR, LPR (Custom, Pyramid, HS), ALB, Printer CS, dan Printer CSS (ALB dan printer dihitung per gardu)',        'reader' => 'Jumlah reader pada seluruh gardu',
-        'cctv' => 'Jumlah CCTV pada seluruh gardu',
+        'semua' => 'Reader, CCTV, MR, LPR (Custom, Pyramid, HS), ALB, Printer CS, dan Printer CSS (ALB dan printer dihitung per gardu)',
+        'reader' => 'Jumlah reader pada seluruh gardu',
+        'cctv' => 'Jumlah CCTV Lajur dan Gandar (Vivotek dan Milesight) pada seluruh gardu',
         'mr' => 'Jumlah MR (Entrance dan Exit) pada seluruh gardu',
-        'lpr' => 'Jumlah LPR (Custom, Pyramid, dan HS) pada seluruh gardu',        'alb' => 'Jumlah gardu yang memiliki tiap jenis ALB',
+        'lpr' => 'Jumlah LPR (Custom, Pyramid, dan HS) pada seluruh gardu',
+        'alb' => 'Jumlah gardu yang memiliki tiap jenis ALB',
         'printer' => 'Jumlah gardu menurut tipe printer CS (Pultol)',
         'printer2' => 'Jumlah gardu menurut tipe Printer CSS',
     ];
 
     private const KOLOM = [
         'reader' => ['Atas' => ['reader_atas'], 'Bawah' => ['reader_bawah']],
-        'cctv' => ['Lajur' => ['cctv_lajur'], 'Gandar' => ['cctv_gandar']],
+        'cctv' => [
+            'Lajur Vivotek' => ['cctv_vivotek_lajur'],
+            'Lajur Milesight' => ['cctv_milesight_lajur'],
+            'Gandar Vivotek' => ['cctv_vivotek_gandar'],
+            'Gandar Milesight' => ['cctv_milesight_gandar'],
+        ],
         'mr' => ['Entrance' => ['mr_entrance'], 'Exit' => ['mr_exit']],
         'lpr' => [
             'Custom' => ['lpr_custom_atas', 'lpr_custom_bawah'],
@@ -53,6 +60,7 @@ class LaporanController extends Controller
             'Highspeed' => ['alb_highspeed'],
             'GRS' => ['alb_grs'],
             'Automation' => ['alb_automation'],
+            'Akses Pro' => ['alb_akses_pro'],
         ],
     ];
 
@@ -61,8 +69,10 @@ class LaporanController extends Controller
     private const SEMUA = [
         'Reader Atas' => ['reader_atas'],
         'Reader Bawah' => ['reader_bawah'],
-        'CCTV Lajur' => ['cctv_lajur'],
-        'CCTV Gandar' => ['cctv_gandar'],
+        'CCTV Lajur Vivotek' => ['cctv_vivotek_lajur'],
+        'CCTV Lajur Milesight' => ['cctv_milesight_lajur'],
+        'CCTV Gandar Vivotek' => ['cctv_vivotek_gandar'],
+        'CCTV Gandar Milesight' => ['cctv_milesight_gandar'],
         'MR Entrance' => ['mr_entrance'],
         'MR Exit' => ['mr_exit'],
         'LPR Custom' => ['lpr_custom_atas', 'lpr_custom_bawah'],
@@ -72,15 +82,17 @@ class LaporanController extends Controller
         'ALB Highspeed' => ['alb_highspeed'],
         'ALB GRS' => ['alb_grs'],
         'ALB Automation' => ['alb_automation'],
+        'ALB Akses Pro' => ['alb_akses_pro'],
     ];
 
+    // Urutan warna harus sama dengan urutan SEMUA, ditambah Printer CS dan Printer CSS di akhir.
     private const PALET_SEMUA = [
-        '#1d4ed8', '#60a5fa',            // Reader
-        '#059669', '#6ee7b7',            // CCTV
-        '#e11d48', '#fda4af',            // MR (Entrance, Exit)
-        '#f59e0b', '#b45309', '#fcd34d', // LPR (Custom, Pyramid, HS)
-        '#7c3aed', '#a78bfa', '#db2777', '#f472b6', // ALB
-        '#0891b2', '#84cc16',            // Printer CS, Printer CSS
+        '#1d4ed8', '#60a5fa',                       // Reader (Atas, Bawah)
+        '#059669', '#6ee7b7', '#0d9488', '#5eead4', // CCTV (Lajur Vivotek/Milesight, Gandar Vivotek/Milesight)
+        '#e11d48', '#fda4af',                       // MR (Entrance, Exit)
+        '#f59e0b', '#b45309', '#fcd34d',            // LPR (Custom, Pyramid, HS)
+        '#7c3aed', '#a78bfa', '#db2777', '#f472b6', '#6d28d9', // ALB
+        '#0891b2', '#84cc16',                       // Printer CS, Printer CSS
     ];
 
     public function index(Request $request): View
@@ -207,7 +219,6 @@ class LaporanController extends Controller
             ];
         });
 
-
         $names = $tipeList->pluck('nama_tipe')->all();
 
         // Gardu yang belum punya tipe
@@ -230,9 +241,7 @@ class LaporanController extends Controller
         ];
     }
 
-
-    /** Jumlah (SUM) kolom perangkat per gerbang: reader, CCTV, LPR, ALB. */
-        /** Jumlah (SUM) kolom perangkat per gerbang. $kolom: label => [kolom yang dijumlahkan]. */
+    /** Jumlah (SUM) kolom perangkat per gerbang. $kolom: label => [kolom yang dijumlahkan]. */
     private function perKolom(array $kolom, Collection $gerbangList, Collection $ids): array
     {
         $fields = collect($kolom)->flatten()->unique()->values();
@@ -261,6 +270,7 @@ class LaporanController extends Controller
         return [array_keys($kolom), $rows->values()];
     }
 
+    /** Semua perangkat sekaligus: reader, CCTV, MR, LPR, ALB, dan jumlah gardu ber-printer (CS dan CSS). */
     private function perSemua(Collection $gerbangList, Collection $ids): array
     {
         [$names, $rows] = $this->perKolom(self::SEMUA, $gerbangList, $ids);
@@ -295,6 +305,7 @@ class LaporanController extends Controller
         return [$names, $rows];
     }
 
+    /** Jumlah gardu per gerbang menurut tipe printer. $kolom: kolom perangkat_gardu, $opsi: daftar pilihan. */
     private function perPrinter(Collection $gerbangList, Collection $ids, string $kolom = 'printer_css', array $opsi = PerangkatGardu::PRINTER_OPTIONS): array
     {
         $kosong = 'Belum diisi';
