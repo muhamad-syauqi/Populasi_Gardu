@@ -6,23 +6,17 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::table('perangkat_gardu', function (Blueprint $table) {
-            //
+            $table->string('printer_css_2')->nullable()->after('printer_css');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('perangkat_gardu', function (Blueprint $table) {
-            //
+            $table->dropColumn('printer_css_2');
         });
     }
 };

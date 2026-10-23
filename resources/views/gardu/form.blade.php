@@ -140,6 +140,17 @@
                     </select>
                     @if ($err('printer_css')) <p class="mt-1 text-xs text-red-600">{{ $err('printer_css') }}</p> @endif
                 </fieldset>
+
+                <fieldset class="rounded-lg border border-slate-200 p-3">
+                    <legend class="px-1 text-xs font-semibold text-slate-700">Printer CSS</legend>
+                    <select id="printer_css_2" name="printer_css_2" class="input">
+                        <option value="">Pilih printer</option>
+                        @foreach (\App\Models\PerangkatGardu::PRINTER_CSS_OPTIONS as $printer)
+                            <option value="{{ $printer }}" @selected(old('printer_css_2', $perangkat->printer_css_2) === $printer)>{{ $printer }}</option>
+                        @endforeach
+                    </select>
+                    @if ($err('printer_css_2')) <p class="mt-1 text-xs text-red-600">{{ $err('printer_css_2') }}</p> @endif
+                </fieldset>
             </div>
         </div>
 

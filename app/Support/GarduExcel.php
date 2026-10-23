@@ -34,6 +34,7 @@ class GarduExcel
     private function make(Collection $gardu, Collection $tipeList, string $namaRuas): string
     {
         $printers = PerangkatGardu::PRINTER_OPTIONS;
+        $printers2 = PerangkatGardu::PRINTER_CSS_OPTIONS;
         $nTipe = $tipeList->count();
 
         $cNo = 2;
@@ -47,7 +48,8 @@ class GarduExcel
         $cLpr = $cMr + 2;
         $cAlb = $cLpr + 6;
         $cPrinter = $cAlb + 4;
-        $cLast = $cPrinter + count($printers) - 1;
+        $cPrinter2 = $cPrinter + count($printers);
+        $cLast = $cPrinter2 + count($printers2) - 1;
 
         $rFirst = 6;
         $rLast = $rFirst + max($gardu->count(), 1) - 1;
@@ -104,6 +106,11 @@ class GarduExcel
             $this->column($cPrinter + $i, $teks, 'F8CBAD');
         }
 
+        $this->group(3, $cPrinter2, count($printers2), 'Printer CSS', 'FFE699');
+        foreach ($printers2 as $i => $teks) {
+            $this->column($cPrinter2 + $i, $teks, 'FFE699');
+        }
+
         // ===== Data =====
         $sums = array_fill($cArah, $cLast - $cArah + 1, 0);
         $groups = [];
@@ -147,6 +154,9 @@ class GarduExcel
             $nilai[$cAlb + 3] = (int) ($p->alb_automation ?? 0);
             foreach ($printers as $k => $nama) {
                 $nilai[$cPrinter + $k] = (($p->printer_css ?? null) === $nama) ? 1 : 0;
+            }
+            foreach ($printers2 as $k => $nama) {
+                $nilai[$cPrinter2 + $k] = (($p->printer_css_2 ?? null) === $nama) ? 1 : 0;
             }
 
             foreach ($nilai as $c => $v) {
@@ -198,6 +208,9 @@ class GarduExcel
         }
         for ($k = 0; $k < count($printers); $k++) {
             $lebar[$cPrinter + $k] = 15;
+        }
+        for ($k = 0; $k < count($printers2); $k++) {
+            $lebar[$cPrinter2 + $k] = 15;
         }
 
         return XlsxWriter::build([

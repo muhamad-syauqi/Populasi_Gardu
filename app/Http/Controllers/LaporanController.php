@@ -25,17 +25,18 @@ class LaporanController extends Controller
         'mr' => 'MR',
         'lpr' => 'LPR',
         'alb' => 'ALB',
-        'printer' => 'Printer CS',
+        'printer' => 'Printer CS (Pultol)',
+        'printer2' => 'Printer CSS',
     ];
 
     private const SUBJUDUL = [
         'tipe' => 'Jumlah gardu menurut tipe',
-        'semua' => 'Reader, CCTV, MR, LPR (Custom, Pyramid, HS), ALB, dan Printer CS (ALB dan Printer CS dihitung per gardu)',
-        'reader' => 'Jumlah reader pada seluruh gardu',
+        'semua' => 'Reader, CCTV, MR, LPR (Custom, Pyramid, HS), ALB, Printer CS, dan Printer CSS (ALB dan printer dihitung per gardu)',        'reader' => 'Jumlah reader pada seluruh gardu',
         'cctv' => 'Jumlah CCTV pada seluruh gardu',
         'mr' => 'Jumlah MR (Entrance dan Exit) pada seluruh gardu',
         'lpr' => 'Jumlah LPR (Custom, Pyramid, dan HS) pada seluruh gardu',        'alb' => 'Jumlah gardu yang memiliki tiap jenis ALB',
-        'printer' => 'Jumlah gardu menurut tipe printer CSS',
+        'printer' => 'Jumlah gardu menurut tipe printer CS (Pultol)',
+        'printer2' => 'Jumlah gardu menurut tipe Printer CSS',
     ];
 
     private const KOLOM = [
@@ -79,7 +80,7 @@ class LaporanController extends Controller
         '#e11d48', '#fda4af',            // MR (Entrance, Exit)
         '#f59e0b', '#b45309', '#fcd34d', // LPR (Custom, Pyramid, HS)
         '#7c3aed', '#a78bfa', '#db2777', '#f472b6', // ALB
-        '#0891b2',                       // Printer CSS
+        '#0891b2', '#84cc16',            // Printer CS, Printer CSS
     ];
 
     public function index(Request $request): View
@@ -107,6 +108,7 @@ class LaporanController extends Controller
             'tipe' => $this->perTipe($gerbangList, $ids),
             'semua' => $this->perSemua($gerbangList, $ids),
             'printer' => $this->perPrinter($gerbangList, $ids),
+            'printer2' => $this->perPrinter($gerbangList, $ids, 'printer_css_2', PerangkatGardu::PRINTER_CSS_OPTIONS),
             default => $this->perKolom(self::KOLOM[$metrik], $gerbangList, $ids),
         };
 
@@ -259,25 +261,32 @@ class LaporanController extends Controller
         return [array_keys($kolom), $rows->values()];
     }
 
-        /** Semua perangkat sekaligus: reader, CCTV, LPR, ALB, dan jumlah gardu ber-printer CSS. */
     private function perSemua(Collection $gerbangList, Collection $ids): array
     {
         [$names, $rows] = $this->perKolom(self::SEMUA, $gerbangList, $ids);
 
-        $printer = DB::table('gardu')
-            ->join('perangkat_gardu', 'perangkat_gardu.gardu_id', '=', 'gardu.id')
-            ->whereIn('gardu.gerbang_id', $ids)
-            ->whereNotNull('perangkat_gardu.printer_css')
-            ->where('perangkat_gardu.printer_css', '<>', '')
-            ->selectRaw('gardu.gerbang_id, COUNT(*) as total')
-            ->groupBy('gardu.gerbang_id')
-            ->pluck('total', 'gerbang_id');
+        $printerKolom = ['Printer CS' => 'printer_css', 'Printer CSS' => 'printer_css_2'];
+        $counts = [];
 
-        $names[] = 'Printer CSS';
+        foreach ($printerKolom as $label => $kolom) {
+            $counts[] = DB::table('gardu')
+                ->join('perangkat_gardu', 'perangkat_gardu.gardu_id', '=', 'gardu.id')
+                ->whereIn('gardu.gerbang_id', $ids)
+                ->whereNotNull("perangkat_gardu.{$kolom}")
+                ->where("perangkat_gardu.{$kolom}", '<>', '')
+                ->selectRaw('gardu.gerbang_id, COUNT(*) as total')
+                ->groupBy('gardu.gerbang_id')
+                ->pluck('total', 'gerbang_id');
+
+            $names[] = $label;
+        }
+
         $gerbangIds = $gerbangList->pluck('id')->values();
 
-        $rows = $rows->map(function ($r, $i) use ($printer, $gerbangIds) {
-            $r['values'][] = (int) ($printer[$gerbangIds[$i]] ?? 0);
+        $rows = $rows->map(function ($r, $i) use ($counts, $gerbangIds) {
+            foreach ($counts as $perGerbang) {
+                $r['values'][] = (int) ($perGerbang[$gerbangIds[$i]] ?? 0);
+            }
             $r['total'] = array_sum($r['values']);
 
             return $r;
@@ -286,8 +295,7 @@ class LaporanController extends Controller
         return [$names, $rows];
     }
 
-    /** Jumlah gardu per gerbang menurut tipe printer CSS. */
-    private function perPrinter(Collection $gerbangList, Collection $ids): array
+    private function perPrinter(Collection $gerbangList, Collection $ids, string $kolom = 'printer_css', array $opsi = PerangkatGardu::PRINTER_OPTIONS): array
     {
         $kosong = 'Belum diisi';
         $nama = function ($v) use ($kosong) {
@@ -299,22 +307,22 @@ class LaporanController extends Controller
         $data = DB::table('gardu')
             ->leftJoin('perangkat_gardu', 'perangkat_gardu.gardu_id', '=', 'gardu.id')
             ->whereIn('gardu.gerbang_id', $ids)
-            ->get(['gardu.gerbang_id', 'perangkat_gardu.printer_css']);
+            ->get(['gardu.gerbang_id', "perangkat_gardu.{$kolom}"]);
 
-        $names = collect(PerangkatGardu::PRINTER_OPTIONS)
-            ->merge($data->map(fn ($d) => $nama($d->printer_css))->reject(fn ($n) => $n === $kosong))
+        $names = collect($opsi)
+            ->merge($data->map(fn ($d) => $nama($d->{$kolom}))->reject(fn ($n) => $n === $kosong))
             ->unique()->values()->all();
 
-        if ($data->contains(fn ($d) => $nama($d->printer_css) === $kosong)) {
+        if ($data->contains(fn ($d) => $nama($d->{$kolom}) === $kosong)) {
             $names[] = $kosong;
         }
 
         $byGerbang = $data->groupBy('gerbang_id');
 
-        $rows = $gerbangList->map(function ($g) use ($byGerbang, $names, $nama) {
+        $rows = $gerbangList->map(function ($g) use ($byGerbang, $names, $nama, $kolom) {
             $items = $byGerbang->get($g->id, collect());
             $values = array_map(
-                fn ($n) => $items->filter(fn ($d) => $nama($d->printer_css) === $n)->count(),
+                fn ($n) => $items->filter(fn ($d) => $nama($d->{$kolom}) === $n)->count(),
                 $names
             );
 

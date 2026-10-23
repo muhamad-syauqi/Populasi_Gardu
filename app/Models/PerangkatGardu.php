@@ -30,13 +30,19 @@ class PerangkatGardu extends Model
         'HP Lj 108w',
     ];
 
+    public const PRINTER_CSS_OPTIONS = [
+        'HP Lj M12W',
+        'HP Lj 107W',
+        'HP Lj 108W',
+    ];
+
     protected $table = 'perangkat_gardu';
 
     protected $fillable = [
         'gardu_id',
         ...self::COUNT_FIELDS,
         'alb_tollpro', 'alb_highspeed', 'alb_grs', 'alb_automation',
-        'printer_css', 'catatan',
+        'printer_css', 'printer_css_2', 'catatan',
     ];
 
     public function gardu(): BelongsTo

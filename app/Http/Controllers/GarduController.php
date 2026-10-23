@@ -166,6 +166,7 @@ class GarduController extends Controller
             'status' => ['required', Rule::in(Gardu::STATUS)],
             'catatan' => ['nullable', 'string', 'max:2000'],
             'printer_css' => ['nullable', Rule::in(PerangkatGardu::PRINTER_OPTIONS)],
+            'printer_css_2' => ['nullable', Rule::in(PerangkatGardu::PRINTER_CSS_OPTIONS)],
         ];
 
         foreach (PerangkatGardu::COUNT_FIELDS as $field) {
@@ -204,6 +205,8 @@ class GarduController extends Controller
         }
 
         $attrs['printer_css'] = $request->input('printer_css') ?: null;
+        $attrs['printer_css_2'] = $request->input('printer_css_2') ?: null;
+        
 
         return $attrs;
     }
